@@ -7,21 +7,76 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
         }
+
+        /* Floating chat container */
+        .chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 400px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+        }
+
+        /* Toggle button */
+        .chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .chat-toggle:hover {
+            background-color: #0056b3;
+        }
+
+        .chat-header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            margin: 0;
+            font-size: 1.1em;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 5px;
+        }
+
         .chat-container {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            height: 500px;
+            height: 350px;
             overflow-y: auto;
-            margin-bottom: 20px;
+            padding: 15px;
             background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
         .message {
             margin: 10px 0;
             padding: 12px;
@@ -29,81 +84,115 @@
             max-width: 80%;
             word-wrap: break-word;
         }
+
         .user-message {
             background-color: #007bff;
             color: white;
             margin-left: auto;
         }
+
         .bot-message {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6;
             margin-right: auto;
         }
+
         .input-container {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            padding: 15px;
+            border-top: 1px solid #eee;
         }
+
         .text-input-container {
             display: flex;
             gap: 10px;
-            flex-grow: 1;
+            margin-bottom: 10px;
         }
+
         #user-input {
             flex-grow: 1;
-            padding: 12px;
+            padding: 8px 12px;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 20px;
+            font-size: 14px;
         }
+
         button {
-            padding: 12px 24px;
+            padding: 8px 16px;
             background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.2s;
+            font-size: 14px;
         }
+
         button:hover {
             background-color: #0056b3;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+
         .image-upload {
-            width: 100%;
-            margin-top: 10px;
-            padding: 10px;
+            padding: 8px;
             background-color: white;
             border: 1px dashed #ddd;
             border-radius: 8px;
             text-align: center;
+            font-size: 14px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .chat-widget {
+                width: 100%;
+                height: 100%;
+                bottom: 0;
+                right: 0;
+                border-radius: 0;
+            }
+
+            .chat-container {
+                height: calc(100vh - 180px);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Design Thinking Buddy</h1>
-        <p>Your AI assistant for design thinking and innovation</p>
-    </div>
-    <div class="chat-container" id="chat-container">
-        <div class="message bot-message">Hi there! I'm DesignThinkingBuddy. I'm here to help you with design thinking concepts and methodologies. You can send me text messages or upload images of design thinking tools for analysis!</div>
-    </div>
-    <div class="input-container">
-        <div class="text-input-container">
-            <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
-            <button onclick="sendMessage()">Send</button>
+    <!-- Chat toggle button -->
+    <button class="chat-toggle" onclick="toggleChat()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </button>
+
+    <!-- Chat widget -->
+    <div class="chat-widget" id="chat-widget">
+        <div class="chat-header">
+            <h3 class="chat-title">Design Thinking Buddy</h3>
+            <button class="close-button" onclick="toggleChat()">✕</button>
         </div>
-        <div class="image-upload">
-            <input type="file" id="image-input" accept="image/*" onchange="sendImage(event)">
-            <label for="image-input">Upload an image for analysis</label>
+        <div class="chat-container" id="chat-container">
+            <div class="message bot-message">Hi there! I'm DesignThinkingBuddy. I'm here to help you with design thinking concepts and methodologies. You can send me text messages or upload images of design thinking tools for analysis!</div>
+        </div>
+        <div class="input-container">
+            <div class="text-input-container">
+                <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+            <div class="image-upload">
+                <input type="file" id="image-input" accept="image/*" onchange="sendImage(event)">
+                <label for="image-input">Upload an image for analysis</label>
+            </div>
         </div>
     </div>
 
     <script>
+        // Add toggle chat functionality
+        function toggleChat() {
+            const widget = document.getElementById('chat-widget');
+            const currentDisplay = window.getComputedStyle(widget).display;
+            widget.style.display = currentDisplay === 'none' ? 'block' : 'none';
+        }
+
+        // Keep your existing JavaScript functions
         function addMessage(message, isUser) {
             const chatContainer = document.getElementById('chat-container');
             const messageDiv = document.createElement('div');
@@ -170,11 +259,10 @@
                 addMessage('Error: Could not process image', false);
             }
 
-            // Reset file input
             event.target.value = '';
         }
 
-        // Allow Enter key to send message
+        // Keep the Enter key functionality
         document.getElementById('user-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
