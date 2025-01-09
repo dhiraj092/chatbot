@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Thinking Buddy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .message {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+        .bot-message {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            margin-right: auto;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .text-input-container {
+            display: flex;
+            gap: 10px;
+            flex-grow: 1;
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .image-upload {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: white;
+            border: 1px dashed #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Design Thinking Buddy</h1>
+        <p>Your AI assistant for design thinking and innovation</p>
+    </div>
+    <div class="chat-container" id="chat-container">
+        <div class="message bot-message">Hi there! I'm DesignThinkingBuddy. I'm here to help you with design thinking concepts and methodologies. You can send me text messages or upload images of design thinking tools for analysis!</div>
+    </div>
+    <div class="input-container">
+        <div class="text-input-container">
+            <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        <div class="image-upload">
+            <input type="file" id="image-input" accept="image/*" onchange="sendImage(event)">
+            <label for="image-input">Upload an image for analysis</label>
+        </div>
+    </div>
+
+    <script>
+        function addMessage(message, isUser) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.textContent = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const inputElement = document.getElementById('user-input');
+            const message = inputElement.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            inputElement.value = '';
+
+            try {
+                const response = await fetch('/get_response', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message }),
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    addMessage('Error: ' + data.error, false);
+                } else {
+                    addMessage(data.response, false);
+                }
+            } catch (error) {
+                addMessage('Error: Could not get response', false);
+            }
+        }
+
+        async function sendImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            addMessage(`Uploading image: ${file.name}`, true);
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch('/process_image', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    addMessage('Error: ' + data.error, false);
+                } else {
+                    let analysisText = data.response;
+                    if (data.issues && data.issues.length > 0) {
+                        analysisText += '\n\nIssues found:\n' + data.issues.join('\n');
+                    }
+                    addMessage(analysisText, false);
+                }
+            } catch (error) {
+                addMessage('Error: Could not process image', false);
+            }
+
+            // Reset file input
+            event.target.value = '';
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
